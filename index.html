@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>تست IQ - محمد رسول‌زاده</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Vazirmatn',Tahoma,sans-serif; -webkit-tap-highlight-color:transparent; }
+  body { background:#1a1a2e; min-height:100vh; display:flex; justify-content:center; align-items:flex-start; }
+  .app { width:100%; max-width:430px; min-height:100vh; background:linear-gradient(160deg,#ff9a3c 0%,#ff6b9d 45%,#4ecdc4 100%); position:relative; overflow-x:hidden; padding-bottom:40px; }
+  .name-screen { position:fixed; inset:0; background:linear-gradient(160deg,#ff9a3c 0%,#ff6b9d 45%,#4ecdc4 100%); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:200; padding:20px; }
+  .name-screen.hidden { display:none; }
+  .name-box { background:white; border-radius:28px; padding:30px 22px; width:100%; max-width:340px; text-align:center; box-shadow:0 15px 40px rgba(0,0,0,0.2); }
+  .name-box h2 { font-size:22px; margin-bottom:8px; color:#2d3436; }
+  .name-box p { font-size:14px; color:#636e72; margin-bottom:20px; }
+  .name-input { width:100%; padding:14px; border:2px solid #dfe6e9; border-radius:16px; font-size:16px; text-align:center; margin-bottom:18px; outline:none; }
+  .name-input:focus { border-color:#ff6b9d; }
+  .start-btn { background:linear-gradient(135deg,#ff6b9d,#ff8fab); color:white; border:none; border-radius:18px; padding:14px 30px; font-size:17px; font-weight:700; cursor:pointer; width:100%; box-shadow:0 6px 0 #d63384; }
+  .header { display:flex; justify-content:space-between; align-items:center; padding:16px 18px 8px; }
+  .menu-btn { width:48px; height:48px; background:#ff8c42; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.15); cursor:pointer; }
+  .main-title { font-size:24px; font-weight:800; color:white; text-shadow:0 3px 8px rgba(0,0,0,0.2); }
+  .coin-box { background:linear-gradient(90deg,#4facfe,#00f2fe); border-radius:30px; padding:8px 14px; display:flex; align-items:center; gap:6px; color:white; font-weight:700; font-size:16px; }
+  .level-badge { background:#ff4d8d; color:white; font-size:13px; font-weight:700; padding:6px 18px; border-radius:20px; margin:8px auto; width:fit-content; }
+  .section-info { text-align:center; color:white; font-size:15px; font-weight:600; margin:6px 0 12px; }
+  .player-name { text-align:center; color:white; font-size:14px; margin-bottom:8px; opacity:0.9; }
+  .progress-circles { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:18px; }
+  .circle { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:white; }
+  .circle.done { background:#ffd93d; }
+  .circle.current { background:#ff4d8d; box-shadow:0 0 0 5px rgba(255,77,141,0.3); }
+  .circle.next { background:#4ecdc4; }
+  .dots { color:white; font-size:20px; letter-spacing:3px; }
+  .question-card { background:white; margin:0 16px; border-radius:28px; padding:22px 18px; box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+  .q-text { font-size:17px; font-weight:700; color:#2d3436; text-align:center; line-height:1.7; margin-bottom:16px; }
+  .pattern-row { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  .pattern-item { width:58px; height:58px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+  .pattern-q { font-size:36px; font-weight:800; color:#2d3436; }
+  .options-title { text-align:center; font-size:16px; font-weight:700; color:white; margin:18px 0 12px; }
+  .options { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px; }
+  .option { border:none; border-radius:20px; padding:16px 10px; font-size:15px; font-weight:700; color:white; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:60px; }
+  .option:active { transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.15); }
+  .option.a { background:linear-gradient(135deg,#ffb347,#ffcc33); }
+  .option.b { background:linear-gradient(135deg,#ff6b9d,#ff8fab); }
+  .option.c { background:linear-gradient(135deg,#4ecdc4,#44a08d); }
+  .option.d { background:linear-gradient(135deg,#a55eea,#8854d0); }
+  .option.selected { outline:4px solid #fff; outline-offset:-4px; }
+  .option.correct { background:linear-gradient(135deg,#2ed573,#1e90ff)!important; }
+  .option.wrong { background:linear-gradient(135deg,#ff4757,#ff6b81)!important; opacity:0.85; }
+  .option.disabled { pointer-events:none; opacity:0.5; }
+  .bottom-bar { display:flex; justify-content:space-around; align-items:center; margin-top:28px; padding:0 12px; }
+  .bottom-btn { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+  .bottom-btn .icon { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 6px 15px rgba(0,0,0,0.15); }
+  .hint-btn .icon { background:linear-gradient(135deg,#74b9ff,#0984e3); }
+  .rank-btn .icon { background:linear-gradient(135deg,#fd79a8,#e84393); }
+  .brain-center { width:80px; height:80px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:42px; box-shadow:0 8px 20px rgba(0,0,0,0.15); border:5px solid #ffeaa7; }
+  .bottom-label { font-size:12px; font-weight:700; color:white; }
+  .hint-cost { font-size:11px; background:#ffeaa7; color:#d63031; padding:2px 8px; border-radius:10px; font-weight:700; }
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,0.65); display:none; justify-content:center; align-items:center; z-index:100; padding:20px; }
+  .modal.active { display:flex; }
+  .modal-content { background:white; border-radius:28px; padding:28px 22px; width:100%; max-width:360px; text-align:center; max-height:85vh; overflow-y:auto; }
+  .modal h2 { font-size:22px; margin-bottom:12px; color:#2d3436; }
+  .modal p { font-size:15px; color:#636e72; line-height:1.7; margin-bottom:12px; }
+  .modal-btn { background:linear-gradient(135deg,#ff6b9d,#ff8fab); color:white; border:none; border-radius:18px; padding:14px 30px; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px; box-shadow:0 6px 0 #d63384; }
+  .contact-btn { display:flex; align-items:center; gap:10px; color:white; text-decoration:none; padding:14px 20px; border-radius:18px; font-weight:700; font-size:15px; margin:8px 0; justify-content:center; }
+  .telegram-btn { background:linear-gradient(135deg,#0088cc,#00a2e8); }
+  .rubika-btn { background:linear-gradient(135deg,#7b2cbf,#9d4edd); }
+  .phone-btn { background:linear-gradient(135deg,#00b894,#55efc4); }
+  .creator-box { background:#f1f2f6; border-radius:16px; padding:14px; margin:12px 0; font-size:14px; color:#2d3436; }
+  .rank-list { text-align:right; margin:15px 0; }
+  .rank-item { display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:12px 14px; border-radius:14px; margin-bottom:8px; font-size:15px; }
+  .rank-item.me { background:#ffeaa7; font-weight:700; }
+  .rank-pos { background:#ff6b9d; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .kick-btn { background:#ff4757; color:white; border:none; border-radius:10px; padding:5px 10px; font-size:12px; cursor:pointer; }
+  .admin-box { margin-top:15px; padding-top:15px; border-top:1px dashed #ddd; }
+  .admin-input { width:100%; padding:10px; border:2px solid #dfe6e9; border-radius:12px; text-align:center; margin-bottom:10px; }
+  .loading { text-align:center; color:white; padding:20px; font-size:15px; }
+</style>
+</head>
+<body>
+
+<div class="name-screen" id="name-screen">
+  <div class="name-box">
+    <h2>👋 خوش آمدی!</h2>
+    <p>برای شروع، یک نام برای خودت انتخاب کن</p>
+    <input type="text" class="name-input" id="player-name-input" placeholder="نام تو..." maxlength="15">
+    <button class="start-btn" onclick="startGame()">شروع آزمون</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="header">
+    <div class="menu-btn" onclick="showSupport()">☰</div>
+    <div><div class="main-title">تست IQ ⭐</div></div>
+    <div class="coin-box" id="coin-display">
+      <span>🪙</span><span id="coins">120</span>
+    </div>
+  </div>
+
+  <div class="player-name" id="player-name-display"></div>
+  <div class="level-badge" id="level-badge">سطح ۱ ـ مبتدی</div>
+  <div class="section-info" id="section-info">بخش ۱ از ۱۰ • سوال ۱ از ۱۰</div>
+
+  <div class="progress-circles" id="progress-circles"></div>
+
+  <div class="question-card">
+    <div class="q-text" id="question-text">در حال بارگذاری...</div>
+    <div class="pattern-row" id="pattern-row"></div>
+  </div>
+
+  <div class="options-title">✨ جواب شما: ✨</div>
+  <div class="options" id="options-container"></div>
+
+  <div class="bottom-bar">
+    <div class="bottom-btn hint-btn" onclick="useHint()">
+      <div class="icon">💡</div>
+      <div class="bottom-label">راهنمایی</div>
+      <div class="hint-cost">۱۰ سکه</div>
+    </div>
+    <div class="brain-center">🧠</div>
+    <div class="bottom-btn rank-btn" onclick="showRank()">
+      <div class="icon">🏆</div>
+      <div class="bottom-label">رتبه من</div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <button onclick="showSupport()" style="background:rgba(255,255,255,0.25); border:none; color:white; padding:10px 22px; border-radius:20px; font-weight:700; font-size:14px;">
+      📞 پشتیبانی و سازنده
+    </button>
+  </div>
+</div>
+
+<!-- مودال رتبه -->
+<div class="modal" id="rank-modal">
+  <div class="modal-content">
+    <h2>🏆 جدول رتبه‌ها</h2>
+    <div class="rank-list" id="rank-list"><div class="loading" style="color:#666;">در حال بارگذاری...</div></div>
+    <div class="admin-box" id="admin-box" style="display:none;">
+      <p style="font-size:13px;color:#e74c3c;">🔓 حالت مدیر فعال است</p>
+      <input type="text" class="admin-input" id="kick-name" placeholder="نام بازیکن برای اخراج">
+      <button class="kick-btn" onclick="kickPlayer()" style="width:100%;padding:10px;">اخراج بازیکن</button>
+    </div>
+    <div style="margin-top:15px;">
+      <input type="password" class="admin-input" id="admin-pass" placeholder="رمز مدیر">
+      <button class="modal-btn" onclick="checkAdmin()" style="font-size:14px;padding:10px 20px;">ورود مدیر</button>
+    </div>
+    <button class="modal-btn" onclick="closeModal('rank-modal')">بستن</button>
+  </div>
+</div>
+
+<!-- مودال راهنما -->
+<div class="modal" id="hint-modal">
+  <div class="modal-content">
+    <h2>💡 راهنمایی</h2>
+    <p id="hint-text"></p>
+    <button class="modal-btn" onclick="closeModal('hint-modal')">متوجه شدم</button>
+  </div>
+</div>
+
+<!-- مودال پشتیبانی -->
+<div class="modal" id="support-modal">
+  <div class="modal-content">
+    <h2>📞 پشتیبانی و سازنده</h2>
+    <div class="creator-box">
+      <div style="font-size:13px; margin-bottom:4px;">سازنده برنامه</div>
+      <div style="font-size:18px; color:#0984e3; font-weight:800;">محمد رسول‌زاده</div>
+    </div>
+    <p>راه‌های ارتباطی:</p>
+    <a href="https://t.me/Mohamad55954" target="_blank" class="contact-btn telegram-btn">
+      ✈️ تلگرام: @Mohamad55954
+    </a>
+    <a href="https://rubika.ir/lIlIlIIlIl_lIlIlIlIlI" target="_blank" class="contact-btn rubika-btn">
+      🟣 روبیکا: کلیک کنید
+    </a>
+    <a href="tel:09188950842" class="contact-btn phone-btn">
+      📱 تماس: ۰۹۱۸۸۹۵۰۸۴۲
+    </a>
+    <button class="modal-btn" onclick="closeModal('support-modal')">بستن</button>
+  </div>
+</div>
+
+<!-- مودال پایان بخش -->
+<div class="modal" id="section-modal">
+  <div class="modal-content">
+    <h2>🎉 بخش تمام شد!</h2>
+    <p id="section-result-text"></p>
+    <button class="modal-btn" onclick="nextSection()">بخش بعدی</button>
+  </div>
+</div>
+
+<!-- مودال پایان کل -->
+<div class="modal" id="final-modal">
+  <div class="modal-content">
+    <h2>🏆 آزمون تمام شد!</h2>
+    <p id="final-text"></p>
+    <button class="modal-btn" onclick="location.reload()">شروع دوباره</button>
+  </div>
+</div>
+
+<!-- مودال پیام عمومی -->
+<div class="modal" id="msg-modal">
+  <div class="modal-content">
+    <h2 id="msg-title">پیام</h2>
+    <p id="msg-text"></p>
+    <button class="modal-btn" onclick="closeModal('msg-modal')">باشه</button>
+  </div>
+</div>
+
+<script>
+// ============ Firebase ============
+const firebaseConfig = {
+  apiKey: "AIzaSyCRctzP-Z0TIGd27nOQRCXvEhQEd16UQ1M",
+  authDomain: "mmd-hosh-ad601.firebaseapp.com",
+  projectId: "mmd-hosh-ad601",
+  storageBucket: "mmd-hosh-ad601.firebasestorage.app",
+  messagingSenderId: "974087697030",
+  appId: "1:974087697030:web:fde065030e6286d1559707",
+  measurementId: "G-H99KVMVS9W"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ============ متغیرها ============
+let coins = 120;
+let totalCorrect = 0;
+let totalAnswered = 0;
+let playerName = '';
+let playerDocId = '';
+let isAdmin = false;
+const ADMIN_PASSWORD = 'Mohammad_1392';
+
+const allQuestions = [
+  {q:"کدوم شکل بعدی الگو رو کامل می‌کنه؟", pattern:["☀️","⭐","💜","🌸"], options:["دایره خندان","ستاره بنفش","قلب قرمز","گل زرد"], correct:1, hint:"به ترتیب رنگ و شکل دقت کن"},
+  {q:"الگوی بعدی چیست؟", pattern:["🔴","🔵","🔴","🔵"], options:["قرمز","آبی","سبز","زرد"], correct:0, hint:"رنگ‌ها یکی در میان تکرار می‌شوند"},
+  {q:"شکل بعدی کدام است؟", pattern:["⬛","⬜","⬛","⬜"], options:["مربع سیاه","مربع سفید","دایره","مثلث"], correct:0, hint:"سیاه و سفید یکی در میان"},
+  {q:"کدام شکل الگو را کامل می‌کند؟", pattern:["🔺","🔻","🔺","🔻"], options:["مثلث رو به بالا","مثلث رو به پایین","مربع","دایره"], correct:0, hint:"جهت مثلث‌ها عوض می‌شود"},
+  {q:"بعدی چیست؟", pattern:["🍎","🍌","🍎","🍌"], options:["سیب","موز","پرتقال","انگور"], correct:0, hint:"میوه‌ها یکی در میان"},
+  {q:"عدد بعدی چیست؟ ۲، ۴، ۶، ۸، ؟", pattern:[], options:["۹","۱۰","۱۲","۷"], correct:1, hint:"هر بار ۲ تا اضافه می‌شود"},
+  {q:"عدد بعدی را پیدا کن: ۵، ۱۰، ۱۵، ۲۰، ؟", pattern:[], options:["۲۵","۳۰","۲۲","۱۸"], correct:0, hint:"هر بار ۵ تا زیاد می‌شود"},
+  {q:"کدام عدد بزرگ‌تر است؟", pattern:[], options:["۴۵","۵۴","۳۶","۲۷"], correct:1, hint:"اعداد را با هم مقایسه کن"},
+  {q:"عدد گمشده: ۳، ۶، ۹، ۱۲، ؟", pattern:[], options:["۱۴","۱۵","۱۶","۱۳"], correct:1, hint:"جدول ضرب ۳"},
+  {q:"چند تا سیب می‌بینی؟ 🍎🍎🍎🍎🍎", pattern:[], options:["۳","۴","۵","۶"], correct:2, hint:"با انگشت‌ها بشمار"},
+  {q:"کدام شکل ۳ گوشه دارد؟", pattern:[], options:["مربع","مثلث","دایره","مستطیل"], correct:1, hint:"مثلث ۳ ضلع دارد"},
+  {q:"کدام شکل گوشه ندارد؟", pattern:[], options:["مثلث","مربع","دایره","مستطیل"], correct:2, hint:"دایره گرد است"},
+  {q:"۲ + ۳ = ؟", pattern:[], options:["۴","۵","۶","۷"], correct:1, hint:"با انگشت حساب کن"},
+  {q:"۷ - ۲ = ؟", pattern:[], options:["۴","۵","۶","۳"], correct:1, hint:"از ۷ دو تا کم کن"},
+  {q:"۴ × ۲ = ؟", pattern:[], options:["۶","۸","۱۰","۱۲"], correct:1, hint:"۴ + ۴"},
+  {q:"کدام حیوان پرواز می‌کند؟", pattern:[], options:["سگ","گربه","گنجشک","ماهی"], correct:2, hint:"پرنده‌ها"},
+  {q:"کدام فصل سرد است؟", pattern:[], options:["بهار","تابستان","پاییز","زمستان"], correct:3, hint:"برف می‌آید"},
+  {q:"خورشید از کدام جهت طلوع می‌کند؟", pattern:[], options:["غرب","شرق","شمال","جنوب"], correct:1, hint:"صبح از شرق"},
+  {q:"چند روز در هفته وجود دارد؟", pattern:[], options:["۵","۶","۷","۸"], correct:2, hint:"شنبه تا جمعه"},
+  {q:"آبی + زرد چه رنگی می‌شود؟", pattern:[], options:["قرمز","سبز","بنفش","نارنجی"], correct:1, hint:"آبی + زرد = سبز"}
+];
+
+while (allQuestions.length < 100) {
+  allQuestions.push(...allQuestions.slice(0, 100 - allQuestions.length));
+}
+
+let currentSection = 0;
+let currentInSection = 0;
+let sectionCorrect = 0;
+let answeredThis = false;
+let hintUsed = false;
+const TOTAL_SECTIONS = 10;
+const QUESTIONS_PER_SECTION = 10;
+
+// ============ توابع کمکی ============
+function showMsg(title, text) {
+  document.getElementById('msg-title').textContent = title;
+  document.getElementById('msg-text').textContent = text;
+  document.getElementById('msg-modal').classList.add('active');
+}
+
+// ============ شروع بازی ============
+async function startGame() {
+  const name = document.getElementById('player-name-input').value.trim();
+  if (!name || name.length < 2) { showMsg('توجه', 'لطفاً نام معتبر وارد کن (حداقل ۲ حرف)'); return; }
+  playerName = name;
+  playerDocId = name.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g, '_');
+
+  try {
+    const docRef = db.collection('players').doc(playerDocId);
+    const doc = await docRef.get();
+    if (doc.exists) {
+      const data = doc.data();
+      coins = data.coins || 120;
+      totalCorrect = data.totalCorrect || 0;
+      totalAnswered = data.totalAnswered || 0;
+    } else {
+      await docRef.set({
+        name: playerName,
+        score: 0,
+        totalCorrect: 0,
+        totalAnswered: 0,
+        coins: 120,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastPlayed: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    localStorage.setItem('iq_player_name', playerName);
+    document.getElementById('coins').textContent = coins;
+    document.getElementById('name-screen').classList.add('hidden');
+    document.getElementById('player-name-display').textContent = 'بازیکن: ' + playerName;
+    renderQuestion();
+  } catch(e) {
+    showMsg('خطا', 'مشکل در اتصال به سرور: ' + e.message);
+  }
+}
+
+async function savePlayerData() {
+  try {
+    await db.collection('players').doc(playerDocId).update({
+      coins: coins,
+      totalCorrect: totalCorrect,
+      totalAnswered: totalAnswered,
+      score: Math.round((totalCorrect / Math.max(totalAnswered, 1)) * 100),
+      lastPlayed: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.error(e); }
+}
+
+function updateCoins(amount) {
+  coins += amount;
+  if (coins < 0) coins = 0;
+  document.getElementById('coins').textContent = coins;
+}
+
+// ============ نمایش سوال ============
+function getCurrentQuestion() {
+  return allQuestions[currentSection * QUESTIONS_PER_SECTION + currentInSection];
+}
+
+function renderQuestion() {
+  const q = getCurrentQuestion();
+  answeredThis = false; hintUsed = false;
+  document.getElementById('question-text').textContent = q.q;
+
+  const patternRow = document.getElementById('pattern-row');
+  patternRow.innerHTML = '';
+  if (q.pattern && q.pattern.length) {
+    const colors = ['#ffeaa7','#fd79a8','#74b9ff','#55efc4','#a29bfe'];
+    q.pattern.forEach((p, idx) => {
+      const div = document.createElement('div');
+      div.className = 'pattern-item';
+      div.style.background = colors[idx % colors.length];
+      div.textContent = p;
+      patternRow.appendChild(div);
+    });
+    const qMark = document.createElement('div');
+    qMark.className = 'pattern-q';
+    qMark.textContent = '؟';
+    patternRow.appendChild(qMark);
+  }
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  const classes = ['a','b','c','d'];
+
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option ' + classes[i];
+    btn.innerHTML = '<b>' + letters[i] + '</b> ' + opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  document.getElementById('section-info').textContent = 'بخش ' + (currentSection+1) + ' از ۱۰ • سوال ' + (currentInSection+1) + ' از ۱۰';
+  const levels = ['مبتدی','مبتدی','متوسط','متوسط','خوب','خوب','عالی','عالی','خبره','خبره'];
+  document.getElementById('level-badge').textContent = 'سطح ' + (currentSection+1) + ' ـ ' + levels[currentSection];
+  updateProgressCircles();
+}
+
+function updateProgressCircles() {
+  const container = document.getElementById('progress-circles');
+  const prev = currentInSection;
+  const curr = currentInSection + 1;
+  const next = currentInSection + 2 > 10 ? '✓' : currentInSection + 2;
+  container.innerHTML = 
+    '<div class="circle done">' + (prev === 0 ? '✓' : prev) + '</div>' +
+    '<div class="dots">•••</div>' +
+    '<div class="circle current">' + curr + '</div>' +
+    '<div class="dots">•••</div>' +
+    '<div class="circle next">' + next + '</div>';
+}
+
+function selectAnswer(index) {
+  if (answeredThis) return;
+  answeredThis = true;
+  const q = getCurrentQuestion();
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === index && index !== q.correct) btn.classList.add('wrong');
+    if (i === index) btn.classList.add('selected');
+  });
+  totalAnswered++;
+  if (index === q.correct) { sectionCorrect++; totalCorrect++; updateCoins(5); }
+  else { updateCoins(1); }
+  savePlayerData();
+  setTimeout(() => {
+    if (currentInSection < QUESTIONS_PER_SECTION - 1) {
+      currentInSection++;
+      renderQuestion();
+    } else {
+      showSectionResult();
+    }
+  }, 1100);
+}
+
+function useHint() {
+  if (answeredThis) return;
+  if (coins < 10) { showMsg('سکه کافی نداری', 'برای راهنمایی ۱۰ سکه نیاز داری'); return; }
+  if (hintUsed) { showMsg('توجه', 'قبلاً راهنمایی گرفتی!'); return; }
+  updateCoins(-10);
+  savePlayerData();
+  hintUsed = true;
+  document.getElementById('hint-text').textContent = getCurrentQuestion().hint || 'دقت بیشتری کن!';
+  document.getElementById('hint-modal').classList.add('active');
+}
+
+// ============ رتبه‌ها ============
+async function showRank() {
+  document.getElementById('rank-list').innerHTML = '<div class="loading" style="color:#666;">در حال بارگذاری...</div>';
+  document.getElementById('admin-box').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('rank-modal').classList.add('active');
+  try {
+    const snapshot = await db.collection('players').orderBy('score', 'desc').limit(50).get();
+    let html = '';
+    let i = 0;
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      i++;
+      const isMe = doc.id === playerDocId;
+      html += '<div class="rank-item ' + (isMe ? 'me' : '') + '">' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div class="rank-pos">' + i + '</div>' +
+        '<span>' + (p.name || 'ناشناس') + (isMe ? ' (شما)' : '') + '</span></div>' +
+        '<span>' + (p.score || 0) + '٪</span></div>';
+    });
+    if (!html) html = '<p style="color:#999;">هنوز بازیکنی ثبت نشده</p>';
+    document.getElementById('rank-list').innerHTML = html;
+  } catch(e) {
+    document.getElementById('rank-list').innerHTML = '<p style="color:#e74c3c;">خطا در بارگذاری: ' + e.message + '</p>';
+  }
+}
+
+function checkAdmin() {
+  const pass = document.getElementById('admin-pass').value;
+  if (pass === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('admin-box').style.display = 'block';
+    document.getElementById('admin-pass').value = '';
+    showMsg('✅ موفق', 'ورود مدیر موفق بود');
+  } else {
+    showMsg('❌ خطا', 'رمز اشتباه است');
+  }
+}
+
+async function kickPlayer() {
+  if (!isAdmin) return;
+  const name = document.getElementById('kick-name').value.trim();
+  if (!name) { showMsg('توجه', 'نام را وارد کن'); return; }
+  try {
+    const snap = await db.collection('players').where('name', '==', name).get();
+    if (snap.empty) { showMsg('توجه', 'بازیکن پیدا نشد'); return; }
+    const batch = db.batch();
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    showMsg('✅ انجام شد', 'بازیکن "' + name + '" اخراج شد');
+    document.getElementById('kick-name').value = '';
+    showRank();
+  } catch(e) { showMsg('خطا', e.message); }
+}
+
+function showSupport() { document.getElementById('support-modal').classList.add('active'); }
+
+function showSectionResult() {
+  const percent = Math.round((sectionCorrect / QUESTIONS_PER_SECTION) * 100);
+  document.getElementById('section-result-text').innerHTML =
+    'بخش ' + (currentSection+1) + ' تمام شد!<br><br>' +
+    'درست: <b>' + sectionCorrect + ' از ۱۰</b><br>درصد: ' + percent + '٪';
+  document.getElementById('section-modal').classList.add('active');
+}
+
+function nextSection() {
+  document.getElementById('section-modal').classList.remove('active');
+  sectionCorrect = 0;
+  currentInSection = 0;
+  currentSection++;
+  if (currentSection >= TOTAL_SECTIONS) {
+    const percent = Math.round((totalCorrect / 100) * 100);
+    document.getElementById('final-text').innerHTML =
+      'تبریک ' + playerName + '!<br><br>' +
+      'امتیاز نهایی: <b>' + totalCorrect + ' از ۱۰۰</b><br>درصد: ' + percent + '٪';
+    document.getElementById('final-modal').classList.add('active');
+    savePlayerData();
+  } else {
+    renderQuestion();
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ============ شروع ============
+window.addEventListener('load', async () => {
+  const saved = localStorage.getItem('iq_player_name');
+  if (saved) {
+    playerName = saved;
+    playerDocId = saved.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g, '_');
+    try {
+      const doc = await db.collection('players').doc(playerDocId).get();
+      if (doc.exists) {
+        const data = doc.data();
+        coins = data.coins || 120;
+        totalCorrect = data.totalCorrect || 0;
+        totalAnswered = data.totalAnswered || 0;
+      }
+      document.getElementById('coins').textContent = coins;
+      document.getElementById('name-screen').classList.add('hidden');
+      document.getElementById('player-name-display').textContent = 'بازیکن: ' + playerName;
+      renderQuestion();
+    } catch(e) {
+      localStorage.removeItem('iq_player_name');
+    }
+  }
+});
+</script>
+</body>
+</html>
